@@ -4,7 +4,7 @@ on:
     - cron: '0 0 * * *'  # daily
   push:
     branches:
-      - dev
+      - master
 jobs:
   musicbox:
    runs-on: ubuntu-latest
