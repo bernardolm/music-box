@@ -1,9 +1,10 @@
 name: music-box
 on:
   schedule:
-    - cron: '0 * * * *'  # hourly
+    - cron: '0 0 * * *'  # daily
   push:
-    branches: master
+    branches:
+      - dev
 jobs:
   musicbox:
    runs-on: ubuntu-latest
@@ -17,3 +18,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           LFMUSERNAME: ${{ secrets.LFMUSERNAME }}
           GIST_ID: ${{ secrets.GIST_ID }}
+          LASTFM_PERIOD: ${{ vars.LASTFM_PERIOD }}

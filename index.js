@@ -6,8 +6,9 @@ const eaw = require("eastasianwidth");
 const {
   GIST_ID: gistId,
   GH_TOKEN: githubToken,
-  LASTFM_KEY: lfmAPI,
-  LFMUSERNAME: user,
+  LASTFM_KEY: lastFmAPIKey,
+  LFMUSERNAME: lastFmUser,
+  LASTFM_PERIOD: lastFmPeriod,
 } = process.env;
 
 const octokit = new Octokit({
@@ -15,18 +16,18 @@ const octokit = new Octokit({
 });
 
 const API_BASE =
-  "http://ws.audioscrobbler.com/2.0/?method=user.gettopartists&format=json&period=7day&";
+  "http://ws.audioscrobbler.com/2.0/?method=user.gettopartists&format=json";
 
 async function main() {
-  const username = user;
-  const gistID = gistId;
-  const lfm = lfmAPI;
+  const period = lastFmPeriod ? lastFmPeriod : '7day';
 
-  if (!lfm || !username || !gistID || !githubToken)
+  if (!lastFmAPIKey || !lastFmUser || !gistId || !githubToken)
     throw new Error(
       "Please check your environment variables, as you are missing one."
     );
-  const API = `${API_BASE}user=${username}&api_key=${lfm}`;
+  const API = `${API_BASE}&period=${period}&user=${lastFmUser}&api_key=${lastFmAPIKey}`;
+
+  console.debug('fething from', API);
 
   const data = await fetch(API);
   const json = await data.json();
@@ -34,7 +35,7 @@ async function main() {
   let gist;
   try {
     gist = await octokit.gists.get({
-      gist_id: gistID,
+      gist_id: gistId,
     });
   } catch (error) {
     console.error(`music-box ran into an issue getting your Gist:\n${error}`);
@@ -72,10 +73,10 @@ async function main() {
     // Get original filename to update that same file
     const filename = Object.keys(gist.data.files)[0];
     await octokit.gists.update({
-      gist_id: gistID,
+      gist_id: gistId,
       files: {
         [filename]: {
-          filename: `🎵 My last week in music`,
+          filename: `My last.fm in ${period}`,
           content: lines.join("\n"),
         },
       },
@@ -86,25 +87,23 @@ async function main() {
 }
 
 function generateBarChart(percent, size) {
-  const syms = "░▏▎▍▌▋▊▉█";
+  const filled = "⣿";
+  const empty = "⣀";
 
   const frac = Math.floor((size * 8 * percent) / 100);
   const barsFull = Math.floor(frac / 8);
   if (barsFull >= size) {
-    return syms.substring(8, 9).repeat(size);
+    return filled.repeat(size);
   }
-  const semi = frac % 8;
 
-  return [syms.substring(8, 9).repeat(barsFull), syms.substring(semi, semi + 1)]
-    .join("")
-    .padEnd(size, syms.substring(0, 1));
+  return filled.repeat(barsFull).padEnd(size, empty);
 }
 
 async function updateGist() {
   let gist;
   try {
     gist = await octokit.gists.get({
-      gist_id: gistID,
+      gist_id: gistId,
     });
   } catch (error) {
     console.error(`music-box ran into an issue:\n${error}`);
@@ -114,4 +113,3 @@ async function updateGist() {
 (async () => {
   await main();
 })();
-
