@@ -16,7 +16,7 @@ const octokit = new Octokit({
 });
 
 const API_BASE =
-  "http://ws.audioscrobbler.com/2.0/?method=user.gettopartists&format=json";
+  "http://ws.audioscrobbler.com/2.0/?method=user.gettopartists&format=json&limit=5";
 
 async function main() {
   const period = lastFmPeriod ? lastFmPeriod : '7day';
